@@ -38,7 +38,7 @@ const save = (k, v) => put('meta', { k, v });
 
 /* ---------- State ---------- */
 let songs = [], pls = [], queue = [], qi = -1, hist = [], cur = null, url = '', ctx, F = {};
-let S = { bass: 0, mid: 0, treb: 0, vol: 1, speed: 1, blur: 24, accent: '#1ed760', sort: 'added', shuf: false, rep: 0, showOut: true, hideMini: false, sink: '' };
+let S = { bass: 0, mid: 0, treb: 0, vol: 1, speed: 1, blur: 24, accent: '#7c8cff', sort: 'added', shuf: false, rep: 0, showOut: true, hideMini: false, sink: '' };
 let sleepT, sleepMin = 0;
 let view = 'library', sub = null, lastList = [], covers = {};
 const byId = id => songs.find(s => s.id === id);
@@ -50,10 +50,19 @@ const shuffle = a => { a = [...a]; for (let i = a.length; i > 1; i--) { const j 
 /* ---------- Rendering ---------- */
 const row = id => {
   const s = byId(id);
-  return `<div class="row ${cur && cur.id === id ? 'now' : ''}" data-a="play" data-id="${id}"><img src="${cover(s)}" alt=""><div class="rm"><div><b>${esc(s.title)}</b><i>${esc(s.album)}</i></div><span>${esc(s.artist)}</span></div><em class="dur">${s.dur ? fmt(s.dur) : ''}</em><button class="ib hrt ${s.fav ? 'on' : ''}" data-a="fav" aria-label="Favorite">${ic('heart')}</button><button class="ib" data-a="dots" aria-label="More">${ic('dots')}</button></div>`;
+  if(!s) return '';
+  return `<div class="row ${cur && cur.id === id ? 'now' : ''}" data-a="play" data-id="${id}">
+    <img src="${cover(s)}" alt="" loading="lazy">
+    <div class="rm"><div class="rm-top"><b>${esc(s.title)}</b><i>${esc(s.album)}</i></div><span>${esc(s.artist)}</span></div>
+    <em class="dur">${s.dur ? fmt(s.dur) : ''}</em>
+    <div class="row-actions">
+      <button class="ib hrt ${s.fav ? 'on' : ''}" data-a="fav" data-id="${id}" aria-label="Favorite">${ic('heart')}</button>
+      <button class="ib" data-a="dots" data-id="${id}" aria-label="More options">${ic('dots')}</button>
+    </div>
+  </div>`;
 };
 const list = (ids, empty) => { lastList = ids; return ids.length ? ids.map(row).join('') : `<p class="empty">${empty || ''}</p>`; };
-const card = (n, sb, img, key) => `<div class="card" data-a="opg" data-k="${esc(key)}"><img src="${img}" alt=""><b>${esc(n)}</b><span>${sb}</span></div>`;
+const card = (n, sb, img, key) => `<div class="card" data-a="opg" data-k="${esc(key)}"><img src="${img}" alt="" loading="lazy"><b>${esc(n)}</b><span>${sb}</span></div>`;
 const groupMap = k => {
   const m = {};
   songs.forEach(s => (k === 'albums' ? [s.album] : s.artist.split(/\s*[;\/]\s*/)).forEach(n => (m[n] ??= []).push(s.id)));
@@ -61,7 +70,7 @@ const groupMap = k => {
 };
 function groups(k) {
   const m = groupMap(k);
-  if (sub && m[sub]) return `<div class="bar"><button class="btn" data-a="back">Back</button><h2>${esc(sub)}</h2></div>` + list(m[sub]);
+  if (sub && m[sub]) return `<div class="page-title"><h2>${esc(sub)}</h2><p>${m[sub].length} songs</p></div><div class="bar"><button class="btn" data-a="back">← Back</button></div>` + list(m[sub]);
   sub = null;
   const e = Object.entries(m);
   return e.length ? `<div class="grid">${e.map(([n, ids]) => card(n, ids.length + ' songs', cover(byId(ids[0])), n)).join('')}</div>` : `<p class="empty">Upload songs to see ${k}.</p>`;
@@ -71,7 +80,7 @@ function pHTML() {
   const p = cp();
   if (p) {
     const ids = p.songs.filter(byId);
-    return `<div class="bar"><button class="btn" data-a="back">Back</button></div><div class="phead"><img src="${pcover(p)}" alt=""><div><h2>${esc(p.name)}</h2><span>${ids.length} songs</span><div class="acts"><button class="btn pri" data-a="pplay">Play</button><button class="btn" data-a="pshuf">Shuffle</button><button class="btn" data-a="padd">Add songs</button><button class="btn" data-a="pren">Rename</button><button class="btn" data-a="pdel">Delete playlist</button></div></div></div>` + list(ids, 'This playlist is empty. Use Add songs.');
+    return `<div class="bar"><button class="btn" data-a="back">← Back</button></div><div class="phead"><img src="${pcover(p)}" alt=""><div><h2>${esc(p.name)}</h2><span>${ids.length} songs · Playlist</span><div class="acts"><button class="btn primary" data-a="pplay">Play</button><button class="btn" data-a="pshuf">Shuffle</button><button class="btn" data-a="padd">Add songs</button><button class="btn subtle" data-a="pren">Rename</button><button class="btn subtle" data-a="pdel">Delete</button></div></div></div>` + list(ids, 'This playlist is empty. Use Add songs to build it.');
   }
   sub = null;
   return `<div class="grid"><div class="card new" data-a="pnew"><div class="plus">+</div><b>New playlist</b></div>${pls.map(p => card(p.name, p.songs.filter(byId).length + ' songs', pcover(p), p.id)).join('')}</div>`;
@@ -84,7 +93,7 @@ const qHTML = () => `<div class="qwrap"><div class="bar"><input class="qs" place
 const addRows = (p, q) => songs.filter(s => match(s, q)).map(s => `<div class="row" data-id="${s.id}"><img src="${cover(s)}" alt=""><div class="rm"><div><b>${esc(s.title)}</b></div><span>${esc(s.artist)}</span></div><button class="btn sm" data-a="ptog">${p.songs.includes(s.id) ? 'Added' : 'Add'}</button></div>`).join('');
 
 const sorters = { added: (a, b) => b.added - a.added, title: (a, b) => a.title.localeCompare(b.title), artist: (a, b) => a.artist.localeCompare(b.artist), album: (a, b) => a.album.localeCompare(b.album) };
-const libBar = n => `<div class="bar"><button class="btn pri" data-a="playall">Play all</button><button class="btn" data-a="shufall">Shuffle all</button><span style="flex:1;color:var(--mu)">${n} songs</span><select data-s="sort" style="width:auto">${[['added', 'Recently added'], ['title', 'Title'], ['artist', 'Artist'], ['album', 'Album']].map(([v, t]) => `<option value="${v}" ${S.sort === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>`;
+const libBar = n => `<div class="page-title"><h2>Library</h2><p>${n} songs in your collection</p></div><div class="bar"><button class="btn primary" data-a="playall">Play all</button><button class="btn" data-a="shufall">Shuffle</button><span style="flex:1"></span><select data-s="sort" aria-label="Sort by">${[['added', 'Recently added'], ['title', 'Title'], ['artist', 'Artist'], ['album', 'Album']].map(([v, t]) => `<option value="${v}" ${S.sort === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>`;
 function render() {
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.v === view));
   $('#search').style.display = view === 'library' ? '' : 'none';
@@ -96,7 +105,9 @@ function render() {
   else if (view === 'queue') h = qHTML();
   else if (view === 'playlists') h = pHTML();
   else h = groups(view);
-  $('#view').innerHTML = (sub ? '' : `<h1 class="pt">${view}</h1>`) + h;
+  $('#view').innerHTML = h;
+  const lc = $('#libCount'); if(lc) lc.textContent = `${songs.length} songs`;
+  const sf = $('#storageFill'); if(sf) sf.style.width = Math.min(100, songs.length/2) + '%';
 }
 function refreshQ() {
   document.querySelectorAll('.qlist').forEach(e => e.innerHTML = qList());
@@ -173,7 +184,7 @@ function ui() {
   $('#lt').textContent = s ? (s.lyrics || 'No lyrics were found in this file\'s metadata.') : '';
   $('#bH').classList.toggle('on', !!s && !!s.fav);
   $('.bbg').style.backgroundImage = `url(${cover(s)})`;
-  document.title = s ? s.title + ' - nortest' : 'nortest';
+  document.title = s ? `${s.title} · ${s.artist} — nortest` : 'Nortest — Music Studio';
   pi(); media(); refreshQ();
   if (view !== 'queue') render();
 }
@@ -201,13 +212,14 @@ au.onended = () => {
   else next();
 };
 au.ontimeupdate = au.onloadedmetadata = () => {
-  const pc = au.duration ? au.currentTime / au.duration * 100 : 0;
-  $('#seek').value = pc; $('#seek').style.setProperty('--p', pc + '%'); $('#mProg i').style.width = pc + '%';
+  const pct = au.duration ? au.currentTime / au.duration * 100 : 0;
+  $('#seek').value = pct;
+  const mp = $('#miniProg'); if(mp) mp.style.width = pct + '%';
   $('#cur').textContent = fmt(au.currentTime);
   $('#dur').textContent = fmt(au.duration);
   try { if (au.duration) navigator.mediaSession.setPositionState({ duration: au.duration, position: au.currentTime, playbackRate: au.playbackRate }); } catch (e) { }
 };
-$('#seek').oninput = e => { e.target.style.setProperty('--p', e.target.value + '%'); if (au.duration) au.currentTime = e.target.value / 100 * au.duration; };
+$('#seek').oninput = e => { if (au.duration) au.currentTime = e.target.value / 100 * au.duration; };
 $('#seek').addEventListener('wheel', e => { e.preventDefault(); au.currentTime += e.deltaY < 0 ? 5 : -5; }, { passive: false });
 
 /* ---------- Upload and metadata ---------- */
@@ -247,7 +259,7 @@ function applyUI() {
   au.volume = S.vol; au.defaultPlaybackRate = au.playbackRate = S.speed; applyEQ();
   const rs = document.documentElement.style;
   rs.setProperty('--acc', S.accent); rs.setProperty('--bl', `blur(${S.blur}px) saturate(160%)`);
-  $('#vol').value = S.vol; $('#vol').style.setProperty('--p', S.vol * 100 + '%'); modes();
+  $('#vol').value = S.vol; modes();
   $('#mini').classList.toggle('hid', S.hideMini);
   document.body.classList.toggle('nomini', S.hideMini);
 }
@@ -357,7 +369,7 @@ function modes() {
   $('#bRep').classList.toggle('pri', S.rep > 0);
   $('#bRep').textContent = 'Repeat: ' + ['off', 'all', 'one'][S.rep];
 }
-$('#vol').oninput = e => { S.vol = +e.target.value; au.volume = S.vol; e.target.style.setProperty('--p', S.vol * 100 + '%'); save('S', S); };
+$('#vol').oninput = e => { S.vol = +e.target.value; au.volume = S.vol; save('S', S); };
 Object.assign(A, {
   playall: () => playList(lastList),
   shufall: () => playList(shuffle(lastList)),
@@ -409,7 +421,16 @@ document.addEventListener('keydown', e => {
 
 /* ---------- Init ---------- */
 (async () => {
-  $('#nav').innerHTML = ['library', 'favorites', 'albums', 'artists', 'queue', 'playlists', 'history'].map(v => `<button data-a="nav" data-v="${v}">${v}</button>`).join('');
+  const NAV = [
+    ['library','Library','M4 4h16v16H4z M4 9h16 M9 9v11'],
+    ['favorites','Favorites','M12 21s-8-5.4-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.6-8 11-8 11z'],
+    ['albums','Albums','M12 3v18 M3 12h18 M5.6 5.6l12.8 12.8 M18.4 5.6L5.6 18.4'],
+    ['artists','Artists','M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75'],
+    ['queue','Queue','M4 6h16 M4 12h16 M4 18h10'],
+    ['playlists','Playlists','M3 6h18 M3 12h18 M3 18h18 M16 3v18'],
+    ['history','History','M3 12a9 9 0 1 0 3-6.7 M3 4v5h5 M12 7v5l3 3'],
+  ];
+  $('#nav').innerHTML = NAV.map(([v,label,path]) => `<button data-a="nav" data-v="${v}" title="${label}"><svg viewBox="0 0 24 24"><path d="${path}"/></svg><span>${label}</span></button>`).join('');
   $('#mp').innerHTML = $('#bp').innerHTML = ic('prev');
   $('#mn').innerHTML = $('#bn').innerHTML = ic('next');
   $('#bH').innerHTML = ic('heart');
