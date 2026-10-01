@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nortest — Music Studio</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo-mark">N</div>
+      <div class="brand-text">
+        <div class="brand-name">nortest</div>
+        <div class="brand-sub">Music Studio</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Browse</div>
+      <nav id="nav" aria-label="Primary"></nav>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="storage-card">
+        <div class="storage-title">Local library</div>
+        <div class="storage-sub" id="libCount">0 songs</div>
+        <div class="storage-bar"><span id="storageFill"></span></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <header class="topbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" class="s-ic"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+        <input id="search" type="search" placeholder="Search songs, artists, albums…" autocomplete="off">
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="top-actions">
+        <button class="btn primary" data-a="upload">
+          <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 20h16"/></svg>
+          <span>Upload</span>
+        </button>
+        <button class="btn icon-only" data-a="fs" aria-label="Full screen" title="Full screen">
+          <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+        <button class="btn icon-only" data-a="settings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <main id="view" class="content"></main>
+  </div>
+</div>
+
+<div id="mini" class="mini-player">
+  <div class="mini-progress"><span id="miniProg"></span></div>
+  <img id="mArt" data-a="open" alt="Album art">
+  <div class="mi" data-a="open">
+    <div class="mi-title" id="mT">Nothing playing</div>
+    <div class="mi-artist" id="mA"></div>
+  </div>
+  <div class="mini-out out"></div>
+  <div class="mc">
+    <button class="ib ghost" data-a="prev" id="mp" aria-label="Previous"></button>
+    <button class="ib primary" data-a="toggle" id="mpl" aria-label="Play or pause"></button>
+    <button class="ib ghost" data-a="next" id="mn" aria-label="Next"></button>
+    <button class="btn icon-only mini-expand" data-a="open" aria-label="Open player">
+      <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="big" aria-hidden="true">
+  <div class="big-backdrop" data-a="close"></div>
+  <div class="big-sheet">
+    <div class="big-header">
+      <div class="big-dots"><i></i><i></i><i></i></div>
+      <div class="big-title">Now Playing</div>
+      <div class="big-actions">
+        <button class="btn subtle" data-a="side">Side view</button>
+        <button class="btn icon-only" data-a="close" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="out big-out"></div>
+
+    <div class="bm">
+      <div class="art-wrap">
+        <img id="bArt" alt="Album art">
+      </div>
+      <div class="bc">
+        <div class="ti">
+          <div class="ti-text">
+            <h2 id="bT"></h2>
+            <p id="bA"></p>
+            <small id="bAl"></small>
+          </div>
+          <button class="ib hrt" data-a="fav" id="bH" aria-label="Favorite"></button>
+        </div>
+
+        <div class="player-controls">
+          <div class="pr">
+            <span id="cur">0:00</span>
+            <input id="seek" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek">
+            <span id="dur">0:00</span>
+          </div>
+          <div class="tr">
+            <button class="btn subtle" data-a="b10">-10s</button>
+            <button class="ib ghost" data-a="prev" id="bp" aria-label="Previous"></button>
+            <button class="ib primary large" data-a="toggle" id="bpl" aria-label="Play or pause"></button>
+            <button class="ib ghost" data-a="next" id="bn" aria-label="Next"></button>
+            <button class="btn subtle" data-a="f10">+10s</button>
+          </div>
+          <div class="vr">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg>
+            <input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume">
+          </div>
+          <div class="bb">
+            <button class="btn pill" data-a="shuf" id="bShuf">Shuffle</button>
+            <button class="btn pill" data-a="rep" id="bRep">Repeat: off</button>
+            <button class="btn pill" data-a="lyr">Lyrics</button>
+            <button class="btn pill" data-a="qp">Queue</button>
+          </div>
+        </div>
+
+        <div id="lyr"><button class="btn subtle" data-a="lyrx">Close lyrics</button><pre id="lt"></pre></div>
+      </div>
+    </div>
+  </div>
+  <div id="qp" class="queue-panel"></div>
+</div>
+
+<div id="mod" class="hid"><div class="modal-card" id="mb"></div></div>
+<div id="menu" class="hid"></div>
+<input id="file" type="file" accept="audio/*" multiple hidden>
+<audio id="au" preload="metadata"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
